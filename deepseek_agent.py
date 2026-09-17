@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 from harbor.agents.base import BaseAgent
+from usage_stats import summarize_usage
 
 
 # 与安装脚本中的 npm 包版本保持一致，便于追溯每次评测使用的 Agent。
@@ -28,6 +29,9 @@ def harness_patch(model: str) -> list[dict]:
     return [
         {'id': 'llm-deepseek', 'config': {'protocol': 'chat-completions', 'maxTokens': 32768, 'reasoningEffort': 'high'}},
         {'id': 'agent-default-model', 'config': {'provider': 'deepseek-official', 'model': model}},
+        # 通过旁路插件订阅原生事件，不改变模型请求、提示词或工具行为。
+        {'insert': [{'id': 'harbor-token-usage', 'name': '/opt/harbor-usage-recorder.mjs',
+                     'config': {'outputPath': '/logs/agent/token-usage.jsonl'}}]},
     ]
 
 
@@ -58,6 +62,8 @@ class DeepSeekHarness(BaseAgent):
         )
         if result.return_code != 0:
             raise RuntimeError(f'dsh installation failed with exit code {result.return_code}; see agent/install-dsh.log')
+        await environment.upload_file(source_path=ROOT / 'usage_recorder.mjs',
+                                      target_path='/opt/harbor-usage-recorder.mjs')
         with tempfile.TemporaryDirectory() as td:
             # 此文件只包含公开运行参数，服务地址和密钥在执行时单独注入。
             path = Path(td) / 'patch.json'
@@ -65,28 +71,22 @@ class DeepSeekHarness(BaseAgent):
             await environment.upload_file(source_path=path, target_path='/opt/harbor-dsh.patch.json')
 
     async def run(self, instruction, environment, context) -> None:
-        """通过标准输入提交题目，保存执行记录，并将非零退出报告为运行异常。"""
+        """从文件读取题目作为位置参数，保存执行记录，并向上传播非零退出。"""
         # 题目先写入文件，避免把题目中的引号、换行或命令替换交给 shell 解释。
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / 'instruction.txt'
             path.write_text(instruction)
             await environment.upload_file(source_path=path, target_path='/tmp/harbor-dsh-instruction.txt')
-        # 如实记录包来源与参数；未统计的 token 和费用沿用 Harbor 的未知值。
-        context.metadata = {
-            'dsh_version': DSH_VERSION,
-            'dsh_source': 'published npm package; not a local source build',
-            'model': self.model_name,
-            'protocol': 'chat-completions',
-            'reasoning_effort': 'high',
-            'max_output_tokens_per_request': 32768,
-        }
+        # 此处不能写 context：Harbor 只对空上下文调用日志同步后的统计钩子。
+        self._run_exit_code = None
         result = await environment.exec(
-            # 此版本 headless 只输出最终文本，不支持新版的 --json 参数。
+            # 此版本只接受题目位置参数；双引号避免拆词，-- 防止题目被解析成选项。
+            # 文件内容在命令替换后不会再次作为 shell 代码解释；不支持新版 --json。
             command=(
                 'export PATH="/opt/harbor-dsh/bin:$PATH"; '
                 'exec /opt/harbor-dsh/bin/dsh --profile headless '
                 '--patch /opt/harbor-dsh.patch.json '
-                '< /tmp/harbor-dsh-instruction.txt '
+                '-- "$(cat /tmp/harbor-dsh-instruction.txt)" '
                 '> /logs/agent/dsh.stdout.log 2> /logs/agent/dsh.stderr.log'
             ),
             env={
@@ -98,7 +98,33 @@ class DeepSeekHarness(BaseAgent):
                 'DSH_PERMISSION_MODE': 'danger-full-access',
             },
         )
-        context.metadata['exit_code'] = result.return_code
+        self._run_exit_code = result.return_code
         # 进程完成不等于答题通过；退出正常后仍由 Harbor 的原始验收器判分。
         if result.return_code != 0:
             raise RuntimeError(f'dsh exited with exit code {result.return_code}; see agent/dsh.stderr.log and agent/dsh.stdout.log')
+
+    def populate_context_post_run(self, context) -> None:
+        """在 Harbor 下载日志之后回填用量，失败或超时也能保留已上报的消耗。"""
+        summary = summarize_usage(self.logs_dir)
+        # 每次按完整日志重新赋值，重复调用钩子不会重复累加统计。
+        context.n_input_tokens = summary['n_input_tokens']
+        context.n_output_tokens = summary['n_output_tokens']
+        context.n_cache_tokens = summary['n_cache_tokens']
+        # 自部署模型没有已知单价；会话统计也不能推断每个模型的独立用量。
+        context.cost_usd = None
+        context.metadata = {
+            'dsh_version': DSH_VERSION,
+            'dsh_source': 'published npm package; not a local source build',
+            'model': self.model_name,
+            'protocol': 'chat-completions',
+            'reasoning_effort': 'high',
+            'max_output_tokens_per_request': 32768,
+            'exit_code': getattr(self, '_run_exit_code', None),
+            'token_usage': summary,
+        }
+        try:
+            (self.logs_dir / 'token-usage-summary.json').write_text(
+                json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        except OSError:
+            # 摘要副本写入失败不应覆盖 Harbor 已经收集到的真实统计。
+            self.logger.warning('无法写入 token 用量摘要副本，统计已保留在 Harbor 结果中。')
