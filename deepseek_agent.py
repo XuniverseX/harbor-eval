@@ -9,7 +9,7 @@ from harbor.agents.base import BaseAgent
 
 
 # 与安装脚本中的 npm 包版本保持一致，便于追溯每次评测使用的 Agent。
-DSH_VERSION = '0.1.6-alpha.1'
+DSH_VERSION = '0.1.5-rc.1'
 ROOT = Path(__file__).resolve().parent
 
 
@@ -74,19 +74,20 @@ class DeepSeekHarness(BaseAgent):
         # 如实记录包来源与参数；未统计的 token 和费用沿用 Harbor 的未知值。
         context.metadata = {
             'dsh_version': DSH_VERSION,
-            'dsh_source': 'published npm package (same version as local checkout, not a local build)',
+            'dsh_source': 'published npm package; not a local source build',
             'model': self.model_name,
             'protocol': 'chat-completions',
             'reasoning_effort': 'high',
             'max_output_tokens_per_request': 32768,
         }
         result = await environment.exec(
+            # 此版本 headless 只输出最终文本，不支持新版的 --json 参数。
             command=(
                 'export PATH="/opt/harbor-dsh/bin:$PATH"; '
                 'exec /opt/harbor-dsh/bin/dsh --profile headless '
-                '--patch /opt/harbor-dsh.patch.json --json '
+                '--patch /opt/harbor-dsh.patch.json '
                 '< /tmp/harbor-dsh-instruction.txt '
-                '> /logs/agent/dsh.jsonl 2> /logs/agent/dsh.stderr.log'
+                '> /logs/agent/dsh.stdout.log 2> /logs/agent/dsh.stderr.log'
             ),
             env={
                 'DEEPSEEK_BASE_URL': chat_base_url(self._get_env('CHAT_BASE_URL') or ''),
@@ -100,4 +101,4 @@ class DeepSeekHarness(BaseAgent):
         context.metadata['exit_code'] = result.return_code
         # 进程完成不等于答题通过；退出正常后仍由 Harbor 的原始验收器判分。
         if result.return_code != 0:
-            raise RuntimeError(f'dsh exited with exit code {result.return_code}; see agent/dsh.stderr.log and agent/dsh.jsonl')
+            raise RuntimeError(f'dsh exited with exit code {result.return_code}; see agent/dsh.stderr.log and agent/dsh.stdout.log')

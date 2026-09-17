@@ -15,7 +15,8 @@ source .venv/bin/activate
 ```
 
 适配器在题目容器内安装 Node 24.13.0 和
-`@deepseek-ai/dsh@0.1.6-alpha.1`，不使用宿主机的 Harness 安装。
+`@deepseek-ai/dsh@0.1.5-rc.1`，不使用宿主机的 Harness 安装。
+该版本 headless 不支持 `--json`，适配器使用普通文本输出并保留原生会话记录。
 
 ## 本地配置
 
@@ -58,7 +59,8 @@ python run.py --task ALL --attempts 3 --concurrency 2
 - 当前适配器未聚合 token 和费用，未知指标保持未知。
 
 本地 `jobs/<job-name>/result.json` 保存汇总；每个 trial 目录保存独立结果、
-`verifier/reward.txt`、验收输出以及 `agent/` 下的安装日志、事件流和会话。
+`verifier/reward.txt`、验收输出以及 `agent/` 下的安装日志和原生会话。
+`agent/dsh.stdout.log` 保存最终文本，`agent/dsh.stderr.log` 保存推理进度和诊断。
 Harbor 进程返回 0 不代表所有题目通过，应检查结果文件及异常。
 
 题库、原始日志、配置和实际评测记录仅保留在被 Git 忽略的目录中。

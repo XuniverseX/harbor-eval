@@ -26,7 +26,7 @@ sha256sum --check selected.sha256
 tar -xJf "$node_archive" -C /opt/harbor-dsh --strip-components=1
 # 优先使用刚安装的 Node；Harness 版本须与适配器的 DSH_VERSION 一致。
 export PATH="/opt/harbor-dsh/bin:$PATH"
-npm install --global --prefix /opt/harbor-dsh --no-audit --no-fund @deepseek-ai/dsh@0.1.6-alpha.1
+npm install --global --prefix /opt/harbor-dsh --no-audit --no-fund @deepseek-ai/dsh@0.1.5-rc.1
 # 将实际版本写入安装日志，供评测结果追溯。
 node --version
 node -p "require('/opt/harbor-dsh/lib/node_modules/@deepseek-ai/dsh/package.json').version"

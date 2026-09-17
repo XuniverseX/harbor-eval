@@ -39,6 +39,27 @@ class ConfigurationTests(unittest.TestCase):
 class RunTests(unittest.IsolatedAsyncioTestCase):
     """使用模拟容器检查运行失败及输入隔离，不消耗模型服务额度。"""
 
+    async def test_release_candidate_accepts_plain_headless_invocation(self):
+        """旧版 headless 拒绝 --json；正确的启动方式应能正常记录退出状态。"""
+        class ReleaseCandidateEnvironment:
+            """模拟指定发行版不支持结构化输出参数的命令行约束。"""
+
+            async def upload_file(self, **kwargs):
+                """本测试只检查命令行兼容性，不实际上传文件。"""
+                pass
+
+            async def exec(self, command, **kwargs):
+                """遇到旧版不支持的参数时返回命令行解析失败。"""
+                return SimpleNamespace(return_code=1 if '--json' in command else 0,
+                                       stdout='', stderr='')
+
+        with tempfile.TemporaryDirectory() as td:
+            agent = DeepSeekHarness(logs_dir=Path(td), model_name='example-model',
+                                   extra_env={'CHAT_BASE_URL': 'https://example.com', 'CHAT_API_KEY': 'test-secret'})
+            context = AgentContext()
+            await agent.run('完成示例任务', ReleaseCandidateEnvironment(), context)
+            self.assertEqual(context.metadata['exit_code'], 0)
+
     async def test_cli_failure_is_not_silently_scored_as_completion(self):
         """模拟 CLI 失败，验证异常向上传递且题目、密钥没有拼入命令。"""
         class Environment:
