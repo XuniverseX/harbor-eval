@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "suite": "daily-20-v1",
+  "dataset": "terminal-bench@2.0",
+  "source_repository": "https://github.com/laude-institute/terminal-bench-2",
+  "source_commit": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+  "digest_scope": [
+    "instruction.md",
+    "task.toml",
+    "environment/**",
+    "tests/**"
+  ],
+  "tasks": [
+    {
+      "name": "cancel-async-tasks",
+      "group": "代码实现与修复",
+      "capability": "异步并发、取消与清理",
+      "difficulty": "hard",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "作答通常可使用标准库",
+      "sha256": "5bfc448834b977ba55784bbc3dcf6e42c91534de30abd3bb6da4eccfb9f2a65f"
+    },
+    {
+      "name": "cobol-modernization",
+      "group": "代码实现与修复",
+      "capability": "跨语言迁移和行为一致性",
+      "difficulty": "easy",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "镜像包含 GnuCOBOL",
+      "sha256": "256a8ee8411677ffde4788cd854541c9896025c723c6668e94147b04ded4f0ed"
+    },
+    {
+      "name": "fix-git",
+      "group": "代码实现与修复",
+      "capability": "恢复 Git 历史并合并改动",
+      "difficulty": "easy",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "源码构建会访问 GitHub，官方镜像可减少这一步",
+      "sha256": "e6fb1fbe853bdf6c4e527a3231bf69fa96ed9aee44968dcde753c1005afe9c73"
+    },
+    {
+      "name": "polyglot-c-py",
+      "group": "代码实现与修复",
+      "capability": "同一文件跨语言运行与编译",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "需要 Python 和 GCC",
+      "sha256": "8ab5e42957b0bbdf244ad7cc71c4d752becf363b1d062bafdb6a57b02f96ccc4"
+    },
+    {
+      "name": "kv-store-grpc",
+      "group": "代码实现与修复",
+      "capability": "协议定义、代码生成和常驻服务",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需安装指定版本的 grpc 软件包",
+      "sha256": "7bb33a99cde4418337f5372b744435349881475faafd45aa61577a1076117d96"
+    },
+    {
+      "name": "fix-code-vulnerability",
+      "group": "代码实现与修复",
+      "capability": "真实仓库漏洞定位与回归修复",
+      "difficulty": "hard",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "源码构建访问固定提交的 GitHub 仓库及 PyPI",
+      "sha256": "acded728b04fa77f8ca80a1bd6b4665b37fe974093cade3ddb8c7ef59c4b51da"
+    },
+    {
+      "name": "large-scale-text-editing",
+      "group": "命令行与数据处理",
+      "capability": "大文件转换与 Vim 宏约束",
+      "difficulty": "medium",
+      "agent_timeout_sec": 1200.0,
+      "smoke": false,
+      "dependency_note": "百万行处理可能受机器性能影响",
+      "sha256": "96aa0a811e0c17da2ace1451ee769280993420a6b300223f89f1a505d863e440"
+    },
+    {
+      "name": "log-summary-date-ranges",
+      "group": "命令行与数据处理",
+      "capability": "日期边界、日志聚合与 CSV",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "题面提供固定参考日期，不能使用运行当天日期",
+      "sha256": "8ffe90ba2eee6409d19b430f89566b882090085a8536176a8bcb1aabe44e4e58"
+    },
+    {
+      "name": "regex-log",
+      "group": "命令行与数据处理",
+      "capability": "正则表达式边界与错误匹配控制",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "无需额外账号或数据下载",
+      "sha256": "24a27f4b5932baff5350f9fe77b6b295019ccfc07c9afc26b62c317d08df59e4"
+    },
+    {
+      "name": "multi-source-data-merger",
+      "group": "命令行与数据处理",
+      "capability": "多格式数据合并与冲突报告",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "镜像包含 pandas、pyarrow 和输入数据",
+      "sha256": "38cb771edd96062125e163e3198e6e4a1f7c8baf8946fa4a30f51f4882112670"
+    },
+    {
+      "name": "extract-elf",
+      "group": "命令行与数据处理",
+      "capability": "二进制解析与结构化输出",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "需要 Node 和 GCC；按原始验收阈值判分",
+      "sha256": "cee8ed3eb1c8eac76f53710fcaf31e695f5f49172a43a90b0a13edb7c311e0ba"
+    },
+    {
+      "name": "modernize-scientific-stack",
+      "group": "环境与构建配置",
+      "capability": "旧 Python 代码迁移与依赖声明",
+      "difficulty": "medium",
+      "agent_timeout_sec": 600.0,
+      "smoke": false,
+      "dependency_note": "科学计算依赖增加镜像体积",
+      "sha256": "f071e3ca8b64e136509afe7348f15bdba7ec0b420dc98c4613086f5985a5ebd0"
+    },
+    {
+      "name": "build-pmars",
+      "group": "环境与构建配置",
+      "capability": "源码获取、编译选项与安装验证",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需要访问 Debian 软件源",
+      "sha256": "39a23e1e7c46c90c6a71965374751b9d3d58f2a55961ee3e2958f0c43d9c35a3"
+    },
+    {
+      "name": "nginx-request-logging",
+      "group": "环境与构建配置",
+      "capability": "服务配置、限流、日志和进程管理",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需要安装 Nginx，验收访问容器本地服务",
+      "sha256": "a524661a138b28c7e0f49d95ff8c62523403764c52d31656361ecb3be9b5d2ed"
+    },
+    {
+      "name": "openssl-selfsigned-cert",
+      "group": "环境与构建配置",
+      "capability": "证书生成、权限和脚本验证",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "使用容器内 OpenSSL，无需真实证书账号",
+      "sha256": "38c277b23622ad7bd6af50d051159978e5f9a7b9d5e5a67dfc340b20b740a2bf"
+    },
+    {
+      "name": "git-multibranch",
+      "group": "多步综合操作",
+      "capability": "SSH、Git hook 与双分支 HTTPS 部署",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "容器内运行多个服务",
+      "sha256": "eaf61944b92d0b621d1f72c22cb7a3ecad80fef53287cf6bb66c96cd3bb327e5"
+    },
+    {
+      "name": "db-wal-recovery",
+      "group": "多步综合操作",
+      "capability": "数据库 WAL 修复与数据恢复",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "数据随镜像提供",
+      "sha256": "cfff20aff4598acbb3dbb1b38fa33a934818f58a899119dc721f62dc12c09409"
+    },
+    {
+      "name": "sqlite-db-truncate",
+      "group": "多步综合操作",
+      "capability": "截断数据库恢复与结果导出",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "数据随镜像提供",
+      "sha256": "099886cbe583a518989859f0a6d26e223f53d8832049868c50bd1b6998fd8bf4"
+    },
+    {
+      "name": "sanitize-git-repo",
+      "group": "多步综合操作",
+      "capability": "仓库敏感内容清理与未污染文件保护",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "源码构建访问 GitHub；仅处理题库沙箱内的示例仓库",
+      "sha256": "6e4bb6d4de52220045932deac83eb896d507505f5d0b80ca0ff81321a5f4b16b"
+    },
+    {
+      "name": "configure-git-webserver",
+      "group": "多步综合操作",
+      "capability": "Git push 自动部署和 HTTP 验证",
+      "difficulty": "hard",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "需要安装服务软件；仅部署在题库容器内",
+      "sha256": "23c19cc548df2c4da85aec584ed4062719fb2153c535fc9f4c92d4b26b7abe18"
+    }
+  ]
+}
