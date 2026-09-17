@@ -6,6 +6,10 @@ if ! command -v curl >/dev/null || ! command -v xz >/dev/null; then
     apt-get update
     apt-get install -y --no-install-recommends ca-certificates curl xz-utils
 fi
+# 缓存命中也执行相同的系统依赖准备，保持题目容器的基础工具一致。
+if [ "${1:-}" = "--prepare-only" ]; then
+    exit 0
+fi
 # 根据容器内架构选择 Node，而不是根据运行 Harbor 的宿主机架构选择。
 case "$(uname -m)" in
     x86_64) node_arch=x64 ;;

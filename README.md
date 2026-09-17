@@ -21,6 +21,44 @@ uv sync --locked
 该版本 headless 不支持 `--json` 或从标准输入读取题目；适配器安全地将题目作为
 位置参数传入，使用普通文本输出并保留原生会话记录。
 
+## 安装缓存与预热
+
+默认将作答前安装好的 Node 与 Harness 软件目录缓存到本地 `.cache/dsh-install/`。
+后续题目复制并解压独立软件副本，跳过 Node 下载和 npm 安装。
+缓存不包含题面、服务配置、API key、DSH_HOME、会话或题目产物；模型作答后不会更新缓存。
+系统基础工具仍按原安装脚本准备，因此缓存命中也可能需要 apt 网络访问。
+
+缓存按容器操作系统发行信息、CPU 架构、glibc 版本、安装脚本摘要和验证命令隔离。
+归档恢复前校验 SHA-256，恢复后检查固定 Node/Harness 版本并运行 CLI 帮助自检。
+损坏或启动验证失败时重新在线安装；同平台并发请求使用主机文件锁，避免重复构建。
+该缓存面向当前 Linux glibc 容器，不保证任意第三方系统库组合都兼容。
+
+可先预热，命令读取本地配置进行接入校验，但不向模型发送请求、不评分：
+
+```bash
+uv run python run.py --suite daily-12-v2 --install-only
+uv run python run.py --suite daily-12-v2 --attempts 1
+```
+
+首次预热仍需下载和安装，不会消除冷启动成本；不同平台分别预热。
+不预热也可以直接运行，首道同平台题目会自动填充缓存。
+预热的 job 仅为安装记录，不应计入功能通过率。`--dry-run` 仍只预演，不执行预热。
+
+需要对照原在线安装路径时，在命令前设置环境变量：
+
+```bash
+DSH_INSTALL_CACHE=0 uv run python run.py --task log-summary-date-ranges
+```
+
+正常评测的 `agent_result.metadata.install_cache` 记录 `miss`、`hit`、`rebuilt` 或 `disabled`
+及安装耗时，并在启用缓存时记录软件归档摘要；启用缓存时另有 `agent/install-cache.json`。安装日志仍为
+`agent/install-dsh.log`。Harbor 预热模式不生成 Agent 作答结果，需查看
+`agent/install-cache.json`，不能期待 `agent_result.metadata`。缓存目录被 Git 忽略，不自动上传。
+
+Harness 固定为 0.1.5-rc.1，Node 固定为 24.13.0；npm 的传递依赖仍由首次安装解析，
+缓存冻结的是该次安装的软件内容。不同日期重建可能解析不同传递依赖，因此正式对比
+建议复用同一份缓存并保留其 SHA-256 文件；缓存校验值用于完整性检查，不是软件签名。
+
 ## 本地配置
 
 在仓库根目录创建 `.env.local`，设置以下变量：

@@ -7,6 +7,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from harbor.agents.base import BaseAgent
 from usage_stats import summarize_usage
+from install_cache import install_harness
 
 
 # 与安装脚本中的 npm 包版本保持一致，便于追溯每次评测使用的 Agent。
@@ -54,14 +55,11 @@ class DeepSeekHarness(BaseAgent):
         if not self._get_env('CHAT_API_KEY') or not self._get_env('CHAT_BASE_URL'):
             raise ValueError('CHAT_API_KEY and CHAT_BASE_URL must be loaded from the supplied env file')
         chat_base_url(self._get_env('CHAT_BASE_URL'))
-        # 安装阶段与模型作答阶段分开计时，安装日志保留在 Harbor 日志目录。
-        await environment.upload_file(source_path=ROOT / 'install-dsh.sh', target_path='/tmp/harbor-install-dsh.sh')
-        result = await environment.exec(
-            command='bash /tmp/harbor-install-dsh.sh > /logs/agent/install-dsh.log 2>&1',
-            user='root', timeout_sec=900,
+        # 缓存只包含作答前的软件安装；显式禁用时仍可复现在线安装路径。
+        self._install_cache = await install_harness(
+            environment, ROOT / '.cache/dsh-install',
+            enabled=self._get_env('DSH_INSTALL_CACHE') != '0',
         )
-        if result.return_code != 0:
-            raise RuntimeError(f'dsh installation failed with exit code {result.return_code}; see agent/install-dsh.log')
         await environment.upload_file(source_path=ROOT / 'usage_recorder.mjs',
                                       target_path='/opt/harbor-usage-recorder.mjs')
         with tempfile.TemporaryDirectory() as td:
@@ -114,6 +112,7 @@ class DeepSeekHarness(BaseAgent):
         context.cost_usd = None
         context.metadata = {
             'dsh_version': DSH_VERSION,
+            'install_cache': getattr(self, '_install_cache', None),
             'dsh_source': 'published npm package; not a local source build',
             'model': self.model_name,
             'protocol': 'chat-completions',

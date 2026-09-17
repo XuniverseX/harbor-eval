@@ -189,6 +189,20 @@ class LauncherTests(unittest.TestCase):
                 launcher.main()
             return outcome.exception.code, call.call_args
 
+    def test_install_only_is_forwarded_to_harbor(self):
+        """预热通过 Harbor 安装阶段结束，不进入模型作答。"""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / 'datasets/terminal-bench/example-task').mkdir(parents=True)
+            (root / '.env.local').write_text('CHAT_BASE_URL=https://example.com\nCHAT_API_KEY=test-secret\nCHAT_MODEL=example-model\n')
+            with patch.object(launcher, 'ROOT', root), \
+                    patch('sys.argv', ['run.py', '--task', 'example-task', '--install-only']), \
+                    patch.object(launcher.subprocess, 'call', return_value=0) as call, \
+                    self.assertRaises(SystemExit) as result:
+                launcher.main()
+            self.assertEqual(result.exception.code, 0)
+            self.assertIn('--install-only', call.call_args.args[0])
+
     def test_model_is_read_from_local_configuration(self):
         """没有命令行覆盖时使用本地 env 中配置的模型。"""
         code, call = self.invoke(configured_model='example-model')

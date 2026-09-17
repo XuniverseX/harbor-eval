@@ -21,6 +21,7 @@ def main():
     scope.add_argument('--task', help='Public task name; use ALL for the full downloaded dataset')
     scope.add_argument('--suite', choices=SUITE_NAMES, help='固定公共题目集')
     parser.add_argument('--dry-run', action='store_true', help='校验题目并显示运行范围；不读取凭据、不启动评测')
+    parser.add_argument('--install-only', action='store_true', help='只准备环境和 Agent 安装，不调用模型或评分')
     parser.add_argument('--attempts', type=int, default=1)
     parser.add_argument('--concurrency', type=int, default=1)
     parser.add_argument('--job-name')
@@ -68,6 +69,9 @@ def main():
         '--n-attempts', str(args.attempts), '--max-retries', '0',
         '--agent-setup-timeout-multiplier', '3',
     ]
+    # 使用 Harbor 原生预安装模式预热缓存，不进入作答和验收阶段。
+    if args.install_only:
+        command += ['--install-only']
     # 使用 Harbor 原生的精确题名过滤，不创建修改过的题库副本。
     for name in selected:
         command += ['--include-task-name', name]
