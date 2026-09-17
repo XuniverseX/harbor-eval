@@ -5,7 +5,9 @@ description = "使用 Harbor 和公共题目评测 DeepSeek Harness"
 # 固定已验证的 Python 次版本，依赖的精确版本由 uv.lock 记录。
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "aiohttp>=3.12,<4",
     "harbor==0.23.0",
+    "mcp>=1,<2",
     "python-dotenv==1.2.3",
 ]
 

@@ -2,7 +2,7 @@
 
 通过 Harbor 驱动真实 DeepSeek Harness headless CLI，连接自行配置的
 Chat Completions 服务，使用 Terminal-Bench 2.0 公共题目及原始验收器评分。
-目前仅提供 DeepSeek Harness 适配器。
+提供 DeepSeek Harness 自动适配器和 [WorkBuddy 桌面 MCP 半自动适配器](WORKBUDDY.md)。
 
 ## 安装
 
