@@ -53,17 +53,18 @@ uv run python run.py --task ALL --attempts 3 --concurrency 2
 完整评测会产生更多模型请求。使用相同题库版本、模型配置和运行预算比较
 不同实验；不要将单题成绩视为完整基准成绩。
 
-日常对比使用已锁定的 20 题集合，另有其中 5 题用于接入验证。
+日常对比使用已锁定的 12 题精简集合，另有其中 5 题用于接入验证。
 具体题名、选题依据和环境依赖见 [固定题目集](suites/README.md)。
 
 ```bash
 uv run python run.py --suite smoke-5-v1 --dry-run
 uv run python run.py --suite smoke-5-v1
-uv run python run.py --suite daily-20-v1 --attempts 3 --dry-run
-uv run python run.py --suite daily-20-v1 --attempts 3
+uv run python run.py --suite daily-12-v2 --attempts 3 --dry-run
+uv run python run.py --suite daily-12-v2 --attempts 3
 ```
 
-20 题各运行 3 次共 60 个 trial。`--dry-run` 不读取凭据、不调用模型；
+12 题各运行 3 次共 36 个 trial；日常可使用 `--attempts 1`，只运行 12 次。
+旧 `daily-20-v1` 保留用于复现历史结果。`--dry-run` 不读取凭据、不调用模型；
 固定集合会校验本地题库文件，缺题或内容漂移即停止。默认并发为 1。
 
 ## 执行与评分

@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 
 
-SUITE_NAMES = ('daily-20-v1', 'smoke-5-v1')
+SUITE_NAMES = ('daily-12-v2', 'daily-20-v1', 'smoke-5-v1')
 
 
 def task_digest(task: Path) -> str:
@@ -27,14 +27,18 @@ def task_digest(task: Path) -> str:
 
 def select_suite(root: Path, name: str) -> list[str]:
     """校验精确题名及文件摘要；缺题或内容漂移时拒绝静默缩小评测范围。"""
-    manifest = json.loads((root / 'suites/daily-20-v1.json').read_text(encoding='utf-8'))
-    if name not in SUITE_NAMES or manifest['schema_version'] != 1:
+    if name not in SUITE_NAMES:
+        raise ValueError('不支持的题目集')
+    # 旧版本保持原始范围；验证集继续从旧清单筛选，避免历史成绩口径漂移。
+    manifest_name = 'daily-20-v1' if name == 'smoke-5-v1' else name
+    manifest = json.loads((root / 'suites' / f'{manifest_name}.json').read_text(encoding='utf-8'))
+    if manifest['schema_version'] != 1:
         raise ValueError('不支持的题目集或清单版本')
     entries = manifest['tasks']
     names = [entry['name'] for entry in entries]
     if not names or len(set(names)) != len(names) or any(not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', n) for n in names):
         raise ValueError('清单包含空集合、重复或无效题名')
-    selected = [entry for entry in entries if name == 'daily-20-v1' or entry.get('smoke') is True]
+    selected = [entry for entry in entries if name != 'smoke-5-v1' or entry.get('smoke') is True]
     if not selected:
         raise ValueError('接入验证集不能为空')
     for entry in selected:

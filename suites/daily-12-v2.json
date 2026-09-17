@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "suite": "daily-12-v2",
+  "dataset": "terminal-bench@2.0",
+  "source_repository": "https://github.com/laude-institute/terminal-bench-2",
+  "source_commit": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+  "digest_scope": [
+    "instruction.md",
+    "task.toml",
+    "environment/**",
+    "tests/**"
+  ],
+  "tasks": [
+    {
+      "name": "cancel-async-tasks",
+      "group": "代码实现与修复",
+      "capability": "异步并发、取消与清理",
+      "difficulty": "hard",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "作答通常可使用标准库",
+      "sha256": "5bfc448834b977ba55784bbc3dcf6e42c91534de30abd3bb6da4eccfb9f2a65f"
+    },
+    {
+      "name": "cobol-modernization",
+      "group": "代码实现与修复",
+      "capability": "跨语言迁移和行为一致性",
+      "difficulty": "easy",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "镜像包含 GnuCOBOL",
+      "sha256": "256a8ee8411677ffde4788cd854541c9896025c723c6668e94147b04ded4f0ed"
+    },
+    {
+      "name": "fix-git",
+      "group": "代码实现与修复",
+      "capability": "恢复 Git 历史并合并改动",
+      "difficulty": "easy",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "源码构建会访问 GitHub，官方镜像可减少这一步",
+      "sha256": "e6fb1fbe853bdf6c4e527a3231bf69fa96ed9aee44968dcde753c1005afe9c73"
+    },
+    {
+      "name": "kv-store-grpc",
+      "group": "代码实现与修复",
+      "capability": "协议定义、代码生成和常驻服务",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需安装指定版本的 grpc 软件包",
+      "sha256": "7bb33a99cde4418337f5372b744435349881475faafd45aa61577a1076117d96"
+    },
+    {
+      "name": "fix-code-vulnerability",
+      "group": "代码实现与修复",
+      "capability": "真实仓库漏洞定位与回归修复",
+      "difficulty": "hard",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "源码构建访问固定提交的 GitHub 仓库及 PyPI",
+      "sha256": "acded728b04fa77f8ca80a1bd6b4665b37fe974093cade3ddb8c7ef59c4b51da"
+    },
+    {
+      "name": "log-summary-date-ranges",
+      "group": "命令行与数据处理",
+      "capability": "日期边界、日志聚合与 CSV",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "题面提供固定参考日期，不能使用运行当天日期",
+      "sha256": "8ffe90ba2eee6409d19b430f89566b882090085a8536176a8bcb1aabe44e4e58"
+    },
+    {
+      "name": "multi-source-data-merger",
+      "group": "命令行与数据处理",
+      "capability": "多格式数据合并与冲突报告",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "镜像包含 pandas、pyarrow 和输入数据",
+      "sha256": "38cb771edd96062125e163e3198e6e4a1f7c8baf8946fa4a30f51f4882112670"
+    },
+    {
+      "name": "build-pmars",
+      "group": "环境与构建配置",
+      "capability": "源码获取、编译选项与安装验证",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需要访问 Debian 软件源",
+      "sha256": "39a23e1e7c46c90c6a71965374751b9d3d58f2a55961ee3e2958f0c43d9c35a3"
+    },
+    {
+      "name": "nginx-request-logging",
+      "group": "环境与构建配置",
+      "capability": "服务配置、限流、日志和进程管理",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "作答需要安装 Nginx，验收访问容器本地服务",
+      "sha256": "a524661a138b28c7e0f49d95ff8c62523403764c52d31656361ecb3be9b5d2ed"
+    },
+    {
+      "name": "openssl-selfsigned-cert",
+      "group": "环境与构建配置",
+      "capability": "证书生成、权限和脚本验证",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "使用容器内 OpenSSL，无需真实证书账号",
+      "sha256": "38c277b23622ad7bd6af50d051159978e5f9a7b9d5e5a67dfc340b20b740a2bf"
+    },
+    {
+      "name": "db-wal-recovery",
+      "group": "多步综合操作",
+      "capability": "数据库 WAL 修复与数据恢复",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": true,
+      "dependency_note": "数据随镜像提供",
+      "sha256": "cfff20aff4598acbb3dbb1b38fa33a934818f58a899119dc721f62dc12c09409"
+    },
+    {
+      "name": "sanitize-git-repo",
+      "group": "多步综合操作",
+      "capability": "仓库敏感内容清理与未污染文件保护",
+      "difficulty": "medium",
+      "agent_timeout_sec": 900.0,
+      "smoke": false,
+      "dependency_note": "源码构建访问 GitHub；仅处理题库沙箱内的示例仓库",
+      "sha256": "6e4bb6d4de52220045932deac83eb896d507505f5d0b80ca0ff81321a5f4b16b"
+    }
+  ]
+}

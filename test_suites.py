@@ -67,6 +67,25 @@ class SuiteTests(unittest.TestCase):
             self.assertEqual(json.loads(output)['tasks'], ['example-a'])
             self.assertIsNone(call)
 
+    def test_reduced_suite_uses_own_manifest_and_checks_drift(self):
+        """精简集合只调度自身清单，仍阻止内容漂移，旧集合不受影响。"""
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            self.fixture(root)
+            manifest = json.loads((root / 'suites/daily-20-v1.json').read_text())
+            manifest['tasks'] = manifest['tasks'][1:]
+            (root / 'suites/daily-12-v2.json').write_text(json.dumps(manifest))
+            code, output, call = self.invoke(root, ['--suite', 'daily-12-v2', '--dry-run'])
+            self.assertEqual(code, 0)
+            self.assertEqual(json.loads(output)['tasks'], ['example-b'])
+            self.assertIsNone(call)
+            code, output, _ = self.invoke(root, ['--suite', 'daily-20-v1', '--dry-run'])
+            self.assertEqual(json.loads(output)['task_count'], 2)
+            (root / 'datasets/terminal-bench/example-b/instruction.md').write_text('变化')
+            code, _, call = self.invoke(root, ['--suite', 'daily-12-v2', '--dry-run'])
+            self.assertEqual(code, 2)
+            self.assertIsNone(call)
+
     def test_changed_or_missing_task_blocks_launch(self):
         """题目内容改变、新增环境文件或缺题均不能静默继续。"""
         for mode in ['changed', 'added', 'missing']:
