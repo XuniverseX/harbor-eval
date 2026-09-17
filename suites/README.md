@@ -32,10 +32,10 @@
 ## 使用
 
 ```bash
-python run.py --suite smoke-5-v1 --dry-run
-python run.py --suite smoke-5-v1 --attempts 1 --concurrency 1
-python run.py --suite daily-20-v1 --attempts 3 --concurrency 1 --dry-run
-python run.py --suite daily-20-v1 --attempts 3 --concurrency 1
+uv run python run.py --suite smoke-5-v1 --dry-run
+uv run python run.py --suite smoke-5-v1 --attempts 1 --concurrency 1
+uv run python run.py --suite daily-20-v1 --attempts 3 --concurrency 1 --dry-run
+uv run python run.py --suite daily-20-v1 --attempts 3 --concurrency 1
 ```
 
 20 题各运行 3 次即 60 个独立 trial。默认仍为单题单次；`--suite` 与 `--task` 互斥。`--dry-run` 只核对本地文件和运行范围，不读取模型配置、不调用模型，也不验证网络或容器运行条件。
@@ -49,7 +49,7 @@ python run.py --suite daily-20-v1 --attempts 3 --concurrency 1
 ```bash
 git clone https://github.com/laude-institute/terminal-bench-2.git datasets/terminal-bench
 git -C datasets/terminal-bench checkout --detach 69671fbaac6d67a7ef0dfec016cc38a64ef7a77c
-python run.py --suite daily-20-v1 --dry-run
+uv run python run.py --suite daily-20-v1 --dry-run
 ```
 
 文件校验不锁定镜像 digest、软件包源或远程仓库返回内容。各 Agent 应使用相同镜像缓存和下载条件，并保留本地安装记录。

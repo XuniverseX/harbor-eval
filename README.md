@@ -9,10 +9,12 @@ Chat Completions 服务，使用 Terminal-Bench 2.0 公共题目及原始验收�
 需要可用的 Docker 和 uv。在仓库根目录创建 Python 环境：
 
 ```bash
-uv venv
-uv pip install harbor==0.23.0 python-dotenv
-source .venv/bin/activate
+uv sync --locked
 ```
+
+项目使用 Python 3.12，`uv sync --locked` 按 `uv.lock` 创建本地 `.venv`。
+后续使用 `uv run`，无需激活环境，也不依赖全局安装的 Harbor。
+`.venv` 不提交；`pyproject.toml`、`.python-version` 和 `uv.lock` 随代码提交。
 
 适配器在题目容器内安装 Node 24.13.0 和
 `@deepseek-ai/dsh@0.1.5-rc.1`，不使用宿主机的 Harness 安装。
@@ -36,16 +38,16 @@ source .venv/bin/activate
 ## 运行
 
 ```bash
-harbor datasets download terminal-bench@2.0 -o datasets
-python -m unittest discover -v
+uv run harbor datasets download terminal-bench@2.0 -o datasets
+uv run python -m unittest discover -v
 node --test test_usage_recorder.mjs
-python run.py --task cancel-async-tasks
+uv run python run.py --task cancel-async-tasks
 ```
 
 记录器测试需要本地 Node.js。默认只执行一道公共题，确认接入后可显式运行完整题集：
 
 ```bash
-python run.py --task ALL --attempts 3 --concurrency 2
+uv run python run.py --task ALL --attempts 3 --concurrency 2
 ```
 
 完整评测会产生更多模型请求。使用相同题库版本、模型配置和运行预算比较
@@ -55,10 +57,10 @@ python run.py --task ALL --attempts 3 --concurrency 2
 具体题名、选题依据和环境依赖见 [固定题目集](suites/README.md)。
 
 ```bash
-python run.py --suite smoke-5-v1 --dry-run
-python run.py --suite smoke-5-v1
-python run.py --suite daily-20-v1 --attempts 3 --dry-run
-python run.py --suite daily-20-v1 --attempts 3
+uv run python run.py --suite smoke-5-v1 --dry-run
+uv run python run.py --suite smoke-5-v1
+uv run python run.py --suite daily-20-v1 --attempts 3 --dry-run
+uv run python run.py --suite daily-20-v1 --attempts 3
 ```
 
 20 题各运行 3 次共 60 个 trial。`--dry-run` 不读取凭据、不调用模型；
@@ -107,7 +109,7 @@ fork 或恢复时继承的历史不参与本次运行累计。费用和按模型
 部分统计的 token 数不能当作全量消耗。可在不调用模型的情况下读取旧日志：
 
 ```bash
-python usage_stats.py jobs/<job-name>/<trial-name>/agent
+uv run python usage_stats.py jobs/<job-name>/<trial-name>/agent
 ```
 
 旧日志没有统计事件时，退回原生 `tokenUsage` 投影缓存；缓存可能滞后且会把
