@@ -1,0 +1,10 @@
+__pycache__/
+jobs/
+datasets/
+*.env
+.env
+.env.*
+.DS_Store
+.cache/
+.local/
+.venv/
