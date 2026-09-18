@@ -4,6 +4,15 @@
 Chat Completions 服务，使用 Terminal-Bench 2.0 公共题目及原始验收器评分。
 提供 DeepSeek Harness 自动适配器和 [WorkBuddy 桌面 MCP 半自动适配器](WORKBUDDY.md)。
 
+## 脚本使用说明
+
+[逐脚本说明索引](docs/scripts/README.md) 覆盖全部运行入口、内部模块和测试脚本。
+
+- [DeepSeek Harness：run.py](docs/scripts/run.py.md)
+- [Claude Code：run_claude.py](docs/scripts/run_claude.py.md)
+- [WorkBuddy：workbuddy_eval.py](docs/scripts/workbuddy_eval.py.md)
+- [读取 token 统计：usage_stats.py](docs/scripts/usage_stats.py.md)
+
 ## 安装
 
 需要可用的 Docker 和 uv。在仓库根目录创建 Python 环境：
