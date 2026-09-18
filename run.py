@@ -12,11 +12,12 @@ from suites import SUITE_NAMES, select_suite
 ROOT = Path(__file__).resolve().parent
 
 
-def main():
+def main(default_agent='deepseek-harness'):
     """解析评测范围、读取凭据，再交由 Harbor 执行并返回其退出码。"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-file', type=Path, default=ROOT / '.env.local')
-    parser.add_argument('--model', help='模型 ID；省略时读取本地配置中的 CHAT_MODEL')
+    parser.add_argument('--agent', choices=('deepseek-harness', 'claude-code'), default=default_agent)
+    parser.add_argument('--env-file', type=Path, help='本地配置文件；默认根据 Agent 选择')
+    parser.add_argument('--model', help='模型 ID；覆盖所选 Agent 的本地模型配置')
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument('--task', help='Public task name; use ALL for the full downloaded dataset')
     scope.add_argument('--suite', choices=SUITE_NAMES, help='固定公共题目集')
@@ -44,27 +45,37 @@ def main():
     if not target.is_dir():
         parser.error('Dataset missing. Run harbor datasets download terminal-bench@2.0 -o datasets first.')
     if args.dry_run:
-        print(json.dumps({'suite': args.suite, 'tasks': tasks, 'task_count': len(tasks),
+        print(json.dumps({'agent': args.agent, 'suite': args.suite, 'tasks': tasks, 'task_count': len(tasks),
                           'attempts': args.attempts, 'trial_count': len(tasks) * args.attempts,
                           'concurrency': args.concurrency}, ensure_ascii=False, indent=2))
         raise SystemExit(0)
     # 保留调用者已有环境，仅覆盖配置文件明确提供的两个模型服务变量。
     env = os.environ.copy()
-    values = dotenv_values(args.env_file)
-    for key in ('CHAT_BASE_URL', 'CHAT_API_KEY'):
+    # Claude Code 使用独立配置，避免将 Chat 接口误当成 Messages 网关。
+    is_claude = args.agent == 'claude-code'
+    prefix = 'ANTHROPIC' if is_claude else 'CHAT'
+    config_path = args.env_file or ROOT / ('.env.claude.local' if is_claude else '.env.local')
+    values = dotenv_values(config_path)
+    for key in (f'{prefix}_BASE_URL', f'{prefix}_API_KEY'):
         if not values.get(key):
             parser.error(f'Missing {key} in env file')
         env[key] = values[key]
     # 部署标识只来自调用参数或被 Git 忽略的本地配置，不写入源码默认值。
-    model = args.model or values.get('CHAT_MODEL')
+    model = args.model or values.get(f'{prefix}_MODEL')
     if not model or not model.strip():
-        parser.error('请通过 --model 或本地配置中的 CHAT_MODEL 指定模型 ID')
+        parser.error(f'请通过 --model 或本地配置中的 {prefix}_MODEL 指定模型 ID')
+    if is_claude:
+        # 自定义网关明确使用 API key，避免继承其他登录方式或云供应商路由。
+        for key in ('CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_FORCE_OAUTH', 'CLAUDE_CODE_USE_BEDROCK',
+                    'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'ANTHROPIC_AUTH_TOKEN'):
+            env.pop(key, None)
+        env['ANTHROPIC_MODEL'] = model
     # 使独立安装的 Harbor 可以按模块路径加载本仓库的自定义适配器。
     env['PYTHONPATH'] = str(ROOT) + (os.pathsep + env['PYTHONPATH'] if env.get('PYTHONPATH') else '')
     # 凭据不出现在参数中；不自动重试，并单独放宽首次 Agent 安装的时间预算。
     command = [
         'harbor', 'run', '--path', str(target),
-        '--agent', 'deepseek_agent:DeepSeekHarness', '--model', model,
+        '--agent', 'claude-code' if is_claude else 'deepseek_agent:DeepSeekHarness', '--model', model,
         '--jobs-dir', str(ROOT / 'jobs'), '--n-concurrent', str(args.concurrency),
         '--n-attempts', str(args.attempts), '--max-retries', '0',
         '--agent-setup-timeout-multiplier', '3',

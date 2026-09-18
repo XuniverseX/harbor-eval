@@ -105,6 +105,37 @@ uv run python run.py --suite daily-12-v2 --attempts 3
 旧 `daily-20-v1` 保留用于复现历史结果。`--dry-run` 不读取凭据、不调用模型；
 固定集合会校验本地题库文件，缺题或内容漂移即停止。默认并发为 1。
 
+## Claude Code CLI
+
+使用独立入口 `run_claude.py`，支持相同的 `--suite`、`--task`、`--attempts`、
+`--concurrency`、`--job-name`、`--model`、`--env-file`、`--dry-run` 和 `--install-only`。
+也可使用 `run.py --agent claude-code`。原 `run.py` 默认仍是 DeepSeek Harness。
+
+在本地创建 `.env.claude.local`（已被 Git 忽略），填入 Messages 网关配置：
+
+```dotenv
+ANTHROPIC_BASE_URL=https://gateway.example.com
+ANTHROPIC_API_KEY=replace-with-local-key
+ANTHROPIC_MODEL=your-model-id
+```
+
+地址使用网关要求的基础路径，不填写完整 `/v1/messages` 请求地址；脚本原样传递，
+不自动补 `/v1`。配置从指定文件读取；`--model` 可覆盖模型 ID。
+凭据只通过子进程环境传递，不拼进命令行。此入口使用 API key 鉴权，清除继承的
+OAuth、Bedrock 等路由选项，避免误用其他模型服务。
+
+```bash
+uv run python run_claude.py --suite daily-12-v2 --dry-run
+uv run python run_claude.py --suite daily-12-v2 --attempts 1
+uv run python run_claude.py --task log-summary-date-ranges
+```
+
+使用 Harbor 原生 `claude-code` 适配器安装和运行真实 CLI；结果仍在 `jobs/`。
+本项目的 Harness 软件缓存仅适用于 Harness，不会用于 Claude Code。
+Claude Code 版本及安装行为由 Harbor 原生适配器管理，正式比较时应核对实际安装版本。
+此入口测试覆盖选题和参数传递；网关连通、内网依赖安装和真实模型作答需在实际环境验证。
+CLI 评测不等同于 VSCode 插件评测。下文 Harness 的推理设置和 token 统计口径不套用于 Claude Code。
+
 ## 执行与评分
 
 - 使用原始题目超时和验收脚本，任务通过与否由 Harbor 验收器判定。
